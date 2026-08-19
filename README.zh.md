@@ -6,6 +6,15 @@
 
 本仓库是独立的社区发行版，不是 DeepSeek 官方发布。仓库只包含已提交的开源源码；浏览器 profile、下载文件、截图、凭据和本地配置均不会被纳入。
 
+## Browser 操作演示
+
+下面的视频展示 DSH agent 如何使用这套 harness 搜索公开网页、读取浏览器快照，并与页面进行交互。
+
+<video controls preload="metadata" width="100%">
+  <source src="https://raw.githubusercontent.com/ROOKIE02314/dsh-browser/main/assets/dsh-browser-demo.mp4" type="video/mp4">
+  <a href="assets/dsh-browser-demo.mp4">下载 MP4 演示视频</a>
+</video>
+
 ## 安装与运行
 
 ### 从源码运行

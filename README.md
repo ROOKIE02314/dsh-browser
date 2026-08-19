@@ -6,6 +6,15 @@ English | [中文](README.zh.md)
 
 This repository is an independent community distribution, not an official DeepSeek release. It contains only committed open-source source files; browser profiles, downloads, screenshots, credentials, and local configuration are excluded.
 
+## Browser demo
+
+The video below demonstrates a DSH agent using this harness to search public web pages, inspect browser snapshots, and interact with the rendered page.
+
+<video controls preload="metadata" width="100%">
+  <source src="https://raw.githubusercontent.com/ROOKIE02314/dsh-browser/main/assets/dsh-browser-demo.mp4" type="video/mp4">
+  <a href="assets/dsh-browser-demo.mp4">Download the MP4 demo</a>
+</video>
+
 ## Run
 
 ### Run from source
