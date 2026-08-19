@@ -10,7 +10,7 @@ This repository is an independent community distribution, not an official DeepSe
 
 The video below demonstrates a DSH agent using this harness to search public web pages, inspect browser snapshots, and interact with the rendered page.
 
-[▶️ Watch the browser demo (MP4)](assets/dsh-browser-demo.mp4)
+https://github.com/user-attachments/assets/03d771ff-a1d8-4df8-b34c-3dda8e8c0617
 
 ## Run
 

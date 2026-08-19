@@ -10,7 +10,7 @@
 
 下面的视频展示 DSH agent 如何使用这套 harness 搜索公开网页、读取浏览器快照，并与页面进行交互。
 
-[▶️ 查看浏览器操作演示（MP4）](assets/dsh-browser-demo.mp4)
+https://github.com/user-attachments/assets/03d771ff-a1d8-4df8-b34c-3dda8e8c0617
 
 ## 安装与运行
 
