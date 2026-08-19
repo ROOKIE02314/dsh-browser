@@ -1,0 +1,11 @@
+# Browser capability overlay for `dsh web --patch examples/browser/cordis.yml`.
+# The web bundle keeps these host rows disabled by default; this trusted overlay
+# enables them process-wide while the browser tool remains session-bound.
+- id: browser
+  disabled: false
+
+- id: browser-playwright
+  disabled: false
+
+- id: tool-browser
+  disabled: false
