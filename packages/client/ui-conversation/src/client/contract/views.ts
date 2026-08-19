@@ -23,6 +23,8 @@ export interface ChatStoreState {
   draft: string
   /** Active conversation view id ('conversation.view' entry id); null falls back to Chat. */
   view: string | null
+  /** Active details-panel tab id; the built-in tool output is the stable default. */
+  detailsView: string
   /**
    * One-shot inspect handoff: chat writes the call to reveal, the trajectory
    * view consumes it and acknowledges by clearing. Read with `?? null` —

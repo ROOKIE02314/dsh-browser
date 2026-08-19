@@ -50,6 +50,7 @@ export interface HostApi {
     model?: string
     attachedSessions: number
     canOpenPath: boolean
+    browser?: { dashboardUrl?: string }
   }>>
 
   /**

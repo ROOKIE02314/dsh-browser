@@ -387,6 +387,64 @@ Depends on: [`LocalConfig`](#deepseek-aidsh-bash-local)
 
 Source: [`packages/shell/bash-sandbox/src/index.ts:35`](../packages/shell/bash-sandbox/src/index.ts)
 
+<a id="deepseek-aidsh-browser"></a>
+
+## `@deepseek-ai/dsh-browser`
+
+```ts config-catalog
+/**
+ * Config for the browser seam. `provider` pins which backend wins; omitted = auto-select when
+ * exactly one registered provider is usable.
+ */
+export interface BrowserRuntimeConfig {
+  /** Explicit provider id. */
+  readonly provider?: string
+}
+```
+
+Source: [`packages/browser/browser/src/index.ts:41`](../packages/browser/browser/src/index.ts)
+
+<a id="deepseek-aidsh-browser-playwright"></a>
+
+## `@deepseek-ai/dsh-browser-playwright`
+
+Requires: `browser`
+
+```ts config-catalog
+/**
+ * Plugin config. `cliPath` defaults to the pinned `@playwright/cli` entry inside this package's
+ * dependency tree; `browserHome` defaults to `<process cwd>/.dsh-browser`, which also carries the
+ * `.playwright` marker that gives dsh sessions their own daemon bucket.
+ */
+export interface Config {
+  /** Dashboard server settings; omit the block to use the loopback defaults. */
+  dashboard?: {
+    /** Serve the monitoring dashboard (default true). */
+    enabled?: boolean
+    /** Loopback port (default 12789). */
+    port?: number
+    /** Bind host (default 127.0.0.1). */
+    host?: string
+  }
+  /** Keep browser profiles on disk across restarts (default false). */
+  persistent?: boolean
+  /** Prefix for backend session names (default `dsh`). */
+  sessionPrefix?: string
+  /** Absolute path overriding the pinned playwright-cli entry. */
+  cliPath?: string
+  /** Absolute directory owning the daemon bucket and CLI working directory. */
+  browserHome?: string
+  /** Fail at load when no browser executable is found (default true). */
+  requireBrowser?: boolean
+  /** Byte bound on one CLI reply (default 65536). */
+  maxOutputBytes?: number
+  /** Wall-clock budget per command in ms (default 120000). */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/browser/browser-playwright/src/index.ts:62`](../packages/browser/browser-playwright/src/index.ts)
+
 <a id="deepseek-aidsh-client-connection"></a>
 
 ## `@deepseek-ai/dsh-client-connection`
@@ -2372,6 +2430,31 @@ export interface Config {
 
 Source: [`packages/shell/tool-bash-persistent/src/index.ts:400`](../packages/shell/tool-bash-persistent/src/index.ts)
 
+<a id="deepseek-aidsh-tool-browser"></a>
+
+## `@deepseek-ai/dsh-tool-browser`
+
+Requires: `tools` · `browser`
+
+```ts config-catalog
+/**
+ * Plugin config: feed bounds and the tool-call budget. The feed folds from the session log, so
+ * these bounds only shape the UI-scale projection value, never the durable record.
+ */
+export interface Config {
+  /** Register the browser tools (default true). */
+  enabled?: boolean
+  /** Maximum feed rows retained (default 200). */
+  maxFeedEntries?: number
+  /** Reply-excerpt character cap per feed row (default 512). */
+  feedExcerptChars?: number
+  /** Cooperative timeout budget (ms) for one browser command (default 125000). */
+  timeoutMs?: number
+}
+```
+
+Source: [`packages/browser/tool-browser/src/index.ts:49`](../packages/browser/tool-browser/src/index.ts)
+
 <a id="deepseek-aidsh-tool-fs"></a>
 
 ## `@deepseek-ai/dsh-tool-fs`
@@ -3032,6 +3115,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 - `@deepseek-ai/dsh-client-modules` — requires `webServer` · `loader` ([`packages/client/modules/src/index.ts`](../packages/client/modules/src/index.ts))
 - `@deepseek-ai/dsh-client-runtime` ([`packages/client/runtime/src/index.ts`](../packages/client/runtime/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-agent-preset` ([`packages/client/ui-agent-preset/src/index.ts`](../packages/client/ui-agent-preset/src/index.ts))
+- `@deepseek-ai/dsh-client-ui-browser` ([`packages/client/ui-browser/src/index.ts`](../packages/client/ui-browser/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-commands` ([`packages/client/ui-commands/src/index.ts`](../packages/client/ui-commands/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-conversation` ([`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts))
 - `@deepseek-ai/dsh-client-ui-cordis` ([`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts))

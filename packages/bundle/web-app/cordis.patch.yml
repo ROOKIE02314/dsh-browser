@@ -99,6 +99,21 @@
     - id: api-gateway
       name: '@deepseek-ai/dsh-host-apiproxy'
 
+    # Browser capability rows stay in the host plane: the Playwright daemon
+    # and dashboard are process-level singletons shared by session tools. A
+    # browser preset enables these rows for the sessions that may use them.
+    - id: browser
+      name: '@deepseek-ai/dsh-browser'
+      disabled: true
+
+    - id: browser-playwright
+      name: '@deepseek-ai/dsh-browser-playwright'
+      disabled: true
+
+    - id: tool-browser
+      name: '@deepseek-ai/dsh-tool-browser'
+      disabled: true
+
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
 
@@ -197,6 +212,9 @@
 
     - id: ui-conversation
       name: '@deepseek-ai/dsh-client-ui-conversation'
+
+    - id: ui-browser
+      name: '@deepseek-ai/dsh-client-ui-browser'
 
     # Tool call tree, generic fallback, and keyed business Tool views.
     - id: ui-tool

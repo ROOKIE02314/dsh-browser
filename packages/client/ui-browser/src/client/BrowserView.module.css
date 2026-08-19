@@ -1,0 +1,147 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.root:not([data-active]) {
+  display: none;
+}
+
+.dashboard,
+.feed {
+  min-width: 0;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-base);
+}
+
+.dashboard {
+  overflow: hidden;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+  background: var(--dsw-alias-bg-base);
+}
+
+.unavailable,
+.empty {
+  padding: 20px 12px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.replay {
+  padding: 6px 10px;
+  color: var(--dsw-alias-label-caption);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: right;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+.feedTitle {
+  margin: 0;
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.truncated {
+  color: var(--dsw-alias-label-caption);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+}
+
+.entry {
+  padding: 8px;
+  border-radius: 7px;
+  background: var(--dsw-alias-bg-l1);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.entry[data-outcome="error"] {
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.entryLine,
+.detail {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.time {
+  flex: none;
+  color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.action,
+.detail code,
+.detail pre {
+  min-width: 0;
+  font-family: var(--ds-font-family-code);
+  font-size: 11px;
+}
+
+.action {
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  flex: none;
+  margin-left: auto;
+  color: inherit;
+  font-size: 11px;
+}
+
+.detail {
+  margin-top: 4px;
+}
+
+.detail > span {
+  flex: none;
+  color: var(--dsw-alias-label-caption);
+}
+
+.detail code,
+.detail pre {
+  margin: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-18-playwright-browser-integration.md
+2026-08-18-playwright-browser-integration.md: 8c043b805a6ac6c3748cb325733cc11f06df4c64
+2026-08-18-playwright-browser-integration.zh.md: 5d45dd63a9d0fa17e140ae0af3442f711191c5b3

@@ -14,7 +14,7 @@ import type { ViewTab } from './contract/views.ts'
 import type {
   ApprovalWait, ChatNodeTurnDataInjected, ChatScrollPosition, ChatViewInjected, ComposerBarInjected,
   ComposerChainProps, ConversationInjected, ConversationSessionHeaderInjected, ConversationSessionInjected,
-  DetailsInjected,
+  DetailsInjected, DetailsViewTab,
 } from './contract/slots.ts'
 import type { InputNotice } from './input/contract.ts'
 import { createChatStore } from './stores.ts'
@@ -446,10 +446,19 @@ export function apply(ctx: Context): void {
     locale: NS,
     children: {
       'conversation.details.tool': { kind: 'single', scope: 'session' },
+      'conversation.details.view': { kind: 'list', scope: 'session' },
     },
     store: chatStore,
     inject: (): DetailsInjected => ({
       closeDetails: () => { layout.closeDetails() },
+      viewTabs: (): readonly DetailsViewTab[] => [
+        { id: 'tool', label: t('details.tool') },
+        ...slots.entries('conversation.details.view').flatMap((entry) => {
+          const id = entry.options.id
+          if (id === undefined) return []
+          return [{ id, label: resolveSlotLabel(entry.options.label) ?? id }]
+        }),
+      ],
     }),
   }, DetailsPanel)
 

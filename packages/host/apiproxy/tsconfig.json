@@ -21,6 +21,9 @@
       "path": "../../../vendor/cordis"
     },
     {
+      "path": "../../browser/browser"
+    },
+    {
       "path": "../../../vendor/schemastery"
     },
     {

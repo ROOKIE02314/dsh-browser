@@ -27,3 +27,7 @@
 ## acp-agent
 
 面向程序化客户端的 ACP（Agent Client Protocol）自动化服务器，支持会话、权限和取消操作。详见 [ACP 示例参考](acp-agent/README.md)。
+
+## browser
+
+为受信任的浏览器 preset 启用 Host 浏览器能力的 Web 覆盖层。参见 [browser 示例说明](browser/README.md)。

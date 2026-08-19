@@ -488,6 +488,15 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names.',
   },
   {
+    key: 'browser',
+    pkg: 'browser',
+    title: 'CDP browser automation registry',
+    mode: 'seam',
+    implementations: ['browser-playwright'],
+    consumers: ['tool-browser', 'apiproxy'],
+    note: 'Providers own browser processes and optional dashboards; tool-browser owns the stable model-facing commands, while the Host API advertises the dashboard as an optional client surface.',
+  },
+  {
     key: 'spillStore',
     pkg: 'spill',
     title: 'Spill storage seam',

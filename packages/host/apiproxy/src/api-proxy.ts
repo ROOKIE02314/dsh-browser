@@ -10,6 +10,8 @@ import type { Context } from '@deepseek-ai/cordis'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, ModelSelection, ModelSelectionRef, AgentOptions, AgentStatus } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-presets/types'
+// Type-only: resolves the optional browser capability used by host.describe.
+import type {} from '@deepseek-ai/dsh-browser'
 import { AttachmentError } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import { contentHasImage, createUserMessage, freezeMessage, ReasoningEffortId } from '@deepseek-ai/dsh-llm'
@@ -2864,6 +2866,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
       describe(request) {
         // TODO: version should read apps/cli's package.json; placeholder for now.
         const selection = defaults.defaultModelSelection()
+        const dashboardUrl = ctx.get('browser')?.dashboardUrl()
         return Promise.resolve(ok(request, {
           version: '0.0.1',
           // Same source as session.create's fallback: the UI's default project
@@ -2875,6 +2878,7 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
           model: selection.model,
           attachedSessions: ctx.agents.list().length,
           canOpenPath: canOpenPaths(),
+          ...dashboardUrl === undefined ? {} : { browser: { dashboardUrl } },
         }))
       },
 

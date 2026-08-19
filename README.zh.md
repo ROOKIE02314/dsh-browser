@@ -1,74 +1,51 @@
-# DeepSeek Harness
+# dsh-browser
 
 [English](README.md) | 中文
 
-DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
+`dsh-browser` 是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的浏览器能力源码发行版。它为 DSH Web UI 添加基于 Playwright、按会话隔离的浏览器能力：agent 可以打开网页、读取快照、操作元素，并在自己的会话中保留 cookie。
 
-它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
+本仓库是独立的社区发行版，不是 DeepSeek 官方发布。仓库只包含已提交的开源源码；浏览器 profile、下载文件、截图、凭据和本地配置均不会被纳入。
 
-## 开发者预览
-
-DeepSeek Harness 目前处于 _开发者预览_ 阶段，正在快速迭代。**未来将出现破坏兼容性的变更。**
-
-## 运行
-
-### 通过 `npm` 运行
-
-安装 `Node.js`，然后运行：
-
-```sh
-npx @deepseek-ai/dsh web
-```
-
-该命令会启动 Web UI，默认地址为 `http://127.0.0.1:3080`。详见 [Web UI 指南](docs/user/guide/index.md)。
+## 安装与运行
 
 ### 从源码运行
 
-如需从仓库源码运行：
+浏览器相关包尚未作为独立 npm 包发布，因此请从源码安装。
 
 ```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
-pnpm install
+git clone https://github.com/ROOKIE02314/dsh-browser.git
+cd dsh-browser
+pnpm install --frozen-lockfile
+pnpm --filter @deepseek-ai/dsh-browser-playwright exec playwright-cli install-browser
 pnpm run build
-pnpm dsh web
+pnpm dsh web --patch examples/browser/cordis.yml
 ```
 
-## 社区与支持
+需要 Node.js `^22.19.0 || >=24`、pnpm 11.7.0，以及以上命令安装的浏览器或受支持的本机 Google Chrome。打开 `dsh web` 输出的网址，创建一个会话后，让 agent 依次执行 `browser open https://example.com`、`browser snapshot` 和 `browser click e21`。
 
-- 欢迎通过 [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions) 提交反馈或 bug 报告。
-- 为你的插件仓库添加 [`dsh-plugin`](https://github.com/topics/dsh-plugin) 话题，便于被发现。
-- 欢迎加入 DeepSeek Harness 企微群：扫码添加企微小助手并填写入群问卷，完成后小助手会邀请你入群。
+`examples/browser/cordis.yml` 会启用 `browser`、`browser-playwright` 和 `tool-browser` 三个 row。它们在普通 Web profile 中保持关闭，因此浏览器自动化始终需要显式启用。
 
-<table>
-  <thead>
-    <tr>
-      <th align="center">企微小助手</th>
-      <th align="center">入群问卷</th>
-      <th align="center">微信公众号</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center"><img src="assets/community-wecom-assistant.png" alt="DeepSeek Harness 企微小助手二维码" width="180" height="180"></td>
-      <td align="center"><a href="https://trtgsjkv6r.feishu.cn/share/base/form/shrcnIt5twSVdLGD52KJBckGCgg"><img src="assets/community-wecom-survey.png" alt="DeepSeek Harness 入群问卷二维码" width="180" height="180"></a></td>
-      <td align="center"><img src="assets/community-wechat-official-account.png" alt="DeepSeek Harness 团队微信公众号二维码" width="180" height="180"></td>
-    </tr>
-  </tbody>
-</table>
+## 安全性
 
-## 参与贡献
+Playwright 浏览器由 Host 进程直接启动，不在 DSH shell sandbox 内运行。它可以访问 Host 可访问的网站；登录后，也会以相应账号的权限执行操作。只应为可信 agent 启用此能力。
 
-参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+- 除非明确需要在重启后保留登录状态，否则保持 `persistent: false`。
+- dashboard 默认只绑定 loopback；不要通过公开代理暴露它。
+- 不要把浏览器 profile、截图、下载文件、cookie、API key 或 `.env` 文件加入 Git。仓库已忽略常见的本地浏览器目录，但每次提交前仍应检查 `git status`。
 
-## 开发
+Web UI 使用方式见 [browser 示例](examples/browser/README.md)，能力设计见 [browser 子系统参考](docs/subsystems/browser.md)，配置见 [Playwright provider README](packages/browser/browser-playwright/README.md)。
 
-请先阅读[开发指南](docs/development.md)与[架构文档](docs/architecture.md)。
+## 社区贡献
 
-面向 agent：请遵循 [AGENTS.md](AGENTS.md)。
+代码按 DSH capability seam 组织：
 
-## 许可证
+- `packages/browser/browser` 定义 `ctx.browser` 和 provider 选择。
+- `packages/browser/browser-playwright` 提供锁定版本的 Playwright CLI 后端。
+- `packages/browser/tool-browser` 添加面向模型的 `browser` 与 `browser_help` 工具。
+- `packages/client/ui-browser` 渲染可重放的操作记录和实时 dashboard。
 
-[MIT](LICENSE)
+欢迎贡献新的 browser provider。请把 provider 进程和会话状态放在 provider 包中，并保持面向模型的工具 schema 与具体 provider 无关。修改 `packages/` 前请先阅读[架构文档](docs/architecture.md)。
 
-第三方依赖及其许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+## 许可证与来源
+
+源码按 [MIT License](LICENSE) 发布，来自 DeepSeek Harness 的源码提交 `5bb9087465203c46704a9a7ccfa0588d6db7bcb4`；依赖许可证见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

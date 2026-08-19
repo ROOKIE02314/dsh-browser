@@ -9,8 +9,9 @@
 import { Fragment } from 'react'
 import { CodeBlock } from '@deepseek-ai/dsh-client-ui-primitives'
 import { shallowEqual } from '@deepseek-ai/dsh-client-runtime/client'
+import type { PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ConversationSnapshot, RunningToolCall, ToolCallBlock, ToolResultNode } from '@deepseek-ai/dsh-client-runtime/client'
-import type { DetailsSlotProps } from '../contract/slots.ts'
+import type { ChatStore, DetailsSlotProps } from '../contract/slots.ts'
 import { findToolCall } from '../chat/tool-node-reader.ts'
 import css from './DetailsPanel.module.css'
 
@@ -63,24 +64,36 @@ function rawResultText(block: ToolCallBlock): string {
   return parts.join('\n')
 }
 
-export function DetailsPanel({ useSession, useSessions, sessionId, useStore, renderSlot, closeDetails, t }: DetailsPanelProps) {
+export function DetailsPanel({
+  SessionProvider,
+  useSession,
+  useSessions,
+  sessionId,
+  useStore,
+  actions,
+  renderSlot,
+  closeDetails,
+  viewTabs,
+  t,
+}: DetailsPanelProps) {
   const selection = useStore(s => s.selection)
-  // Session workspace root: an omitted or relative terminal cwd resolves
-  // against it, which the pure presenter cannot see.
-  const sessionCwd = useSessions(list => list.byId[sessionId]?.cwd)
+  const activeView = useStore(s => s.detailsView)
   const callId = selection?.callId
   // materialFor builds a fresh wrapper; shallowEqual short-circuits on its
   // stable members (result node reference rides the snapshot's structural sharing).
   const material = useSession(
     s => (callId === undefined ? null : materialFor(s, callId)),
     (a, b) => shallowEqual(a, b))
+  const tabs = viewTabs?.() ?? [{ id: 'tool', label: t('details.tool') }]
+  const selectedView = tabs.some(tab => tab.id === activeView) ? activeView : tabs[0]?.id ?? 'tool'
+  const title = selectedView === 'tool'
+    ? material?.name ?? t('details.title')
+    : tabs.find(tab => tab.id === selectedView)?.label ?? selectedView
 
   return (
     <div className={css.root}>
       <div className={css.header}>
-        <div className={css.title}>
-          {selection === null ? t('details.title') : material?.name ?? selection.toolName ?? t('details.title')}
-        </div>
+        <div className={css.title}>{title}</div>
         <button
           type="button" className={css.close} aria-label={t('details.close')}
           onClick={() => { closeDetails() }}
@@ -90,40 +103,99 @@ export function DetailsPanel({ useSession, useSessions, sessionId, useStore, ren
           </svg>
         </button>
       </div>
-      <div className={css.body}>
-        {selection === null || callId === undefined
-          ? <div className={css.empty}>{t('details.empty')}</div>
-          : material === null
-            ? <div className={css.empty}>{t('details.notInWindow')}</div>
-            : (
-              <>
-                {material.argsRaw !== null && (
-                  <section className={css.section}>
-                    <div className={css.sectionLabel}>{t('details.input')}</div>
-                    <CodeBlock code={pretty(material.argsRaw)} lang="json" copyLabel={t('copy')} copiedLabel={t('copied')} />
-                  </section>
-                )}
-                <section className={css.section}>
-                  <div className={css.sectionLabel}>{t('details.output')}</div>
-                  {/* Keyed by the selected call: the body owns per-call view
-                      state (the terminal card's expand and copy), which React
-                      would otherwise carry into the next selection because the
-                      panel does not unmount between calls. */}
-                  <Fragment key={callId}>
-                    {renderSlot('conversation.details.tool', { block: material.block, cwd: sessionCwd }, {
-                      fallback: 'kind' in material.block
-                        ? (
-                          <pre className={css.code} data-error={material.block.isError || undefined}>
-                            {rawResultText(material.block)}
-                          </pre>
-                        )
-                        : <div className={css.empty}>{t('details.running')}</div>,
-                    })}
-                  </Fragment>
-                </section>
-              </>
-            )}
+      <div className={css.tabs} role="tablist" aria-label={t('details.tabs')}>
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={tab.id === selectedView}
+            className={css.tab}
+            data-active={tab.id === selectedView || undefined}
+            onClick={() => { actions.setDetailsView(tab.id) }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
+      <div className={css.body}>
+        {selectedView === 'tool'
+          ? <DetailsToolView
+            activeView={selectedView}
+            SessionProvider={SessionProvider}
+            useSession={useSession}
+            useSessions={useSessions}
+            sessionId={sessionId}
+            useStore={useStore}
+            actions={actions}
+            renderSlot={renderSlot}
+            t={t}
+          />
+          : renderSlot('conversation.details.view', {
+            activeView: selectedView,
+            onSelectView: (id) => { actions.setDetailsView(id) },
+          }, { fallback: <div className={css.empty}>{t('details.empty')}</div> })}
+      </div>
+    </div>
+  )
+}
+
+/** Props of the built-in details tab that delegates the selected block to Tool UI. */
+type DetailsToolViewProps = Pick<
+  PropsRuntime<'conversation.details.view'>,
+  'activeView' | 'useSession' | 'useSessions' | 'sessionId'
+>
+  & PropsRenderSlots<'conversation.details.tool'>
+  & PropsStore<ChatStore>
+  & PropsLocale<'conversation'>
+
+/** Built-in `tool` tab; its store handle is shared with the details shell. */
+export function DetailsToolView({ activeView, useSession, useSessions, sessionId, useStore, renderSlot, t }: DetailsToolViewProps) {
+  const selection = useStore(s => s.selection)
+  const callId = selection?.callId
+  const sessionCwd = useSessions(list => list.byId[sessionId]?.cwd)
+  const material = useSession(
+    s => (callId === undefined ? null : materialFor(s, callId)),
+    (a, b) => shallowEqual(a, b))
+
+  if (selection === null || callId === undefined) {
+    return (
+      <div className={css.view} data-active={activeView === 'tool' || undefined}>
+        <div className={css.empty}>{t('details.empty')}</div>
+      </div>
+    )
+  }
+  if (material === null) {
+    return (
+      <div className={css.view} data-active={activeView === 'tool' || undefined}>
+        <div className={css.empty}>{t('details.notInWindow')}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={css.view} data-active={activeView === 'tool' || undefined}>
+      {material.argsRaw !== null && (
+        <section className={css.section}>
+          <div className={css.sectionLabel}>{t('details.input')}</div>
+          <CodeBlock code={pretty(material.argsRaw)} lang="json" copyLabel={t('copy')} copiedLabel={t('copied')} />
+        </section>
+      )}
+      <section className={css.section}>
+        <div className={css.sectionLabel}>{t('details.output')}</div>
+        {/* Keyed by the selected call so renderer-local state cannot bleed between calls. */}
+        <Fragment key={callId}>
+          {renderSlot('conversation.details.tool', { block: material.block, cwd: sessionCwd }, {
+            fallback: 'kind' in material.block
+              ? (
+                <pre className={css.code} data-error={material.block.isError || undefined}>
+                  {rawResultText(material.block)}
+                </pre>
+              )
+              : <div className={css.empty}>{t('details.running')}</div>,
+          })}
+        </Fragment>
+      </section>
     </div>
   )
 }

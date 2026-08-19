@@ -30,6 +30,14 @@ export interface ComposerAttachment {
   previewUrl: string
 }
 
+/** Owner currency shared by every details-panel tab entry. */
+export interface DetailsViewOwnerProps {
+  /** Id of the tab currently shown by the details shell. */
+  activeView: string
+  /** Select one registered details-panel tab. */
+  onSelectView: (id: string) => void
+}
+
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
     /**
@@ -122,6 +130,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      * instead; this one is the whole panel.
      */
     'conversation.details.tool': { kind: 'single'; scope: 'session'; owner: DetailsToolOwnerProps }
+    /** Details-panel body tabs; the shell owns the active id and dispatches one entry. */
+    'conversation.details.view': { kind: 'list'; scope: 'session'; owner: DetailsViewOwnerProps }
     /**
      * The composer takeover chain: entries are selector-routed replacements
      * of the default InputBar. Declared by this package's 'conversation'
@@ -719,10 +729,18 @@ export type ChatViewSlotProps =
 export interface DetailsInjected {
   /** Close the details panel (layout geometry stays with ctx.layout). */
   closeDetails: () => void
+  /** Current labels and ids for the details-panel tab strip. */
+  viewTabs?: () => readonly DetailsViewTab[]
 }
 
-/** Full details-slot props: selection store, Tool output seat, injected close callback, and locale. */
-export type DetailsSlotProps = PropsRuntime<'details'> & PropsRenderSlots<'conversation.details.tool'>
+/** One details-panel tab label projected from the slot ledger. */
+export interface DetailsViewTab {
+  id: string
+  label: string
+}
+
+/** Full details-slot props: tab body seats, selection store, injected callbacks, and locale. */
+export type DetailsSlotProps = PropsRuntime<'details'> & PropsRenderSlots<'conversation.details.tool' | 'conversation.details.view'>
   & PropsStore<ChatStore> & DetailsInjected & PropsLocale<'conversation'>
 
 /** Owner share common to the hero / New-Session Workspace pickers. */

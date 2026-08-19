@@ -385,6 +385,53 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'browser',
+    summary: 'The browser capability service.',
+    description: 'The browser capability service. Registered as `ctx.browser` (one instance per context).\n\nSelection semantics (resolved at execution time, never order-dependent):\n\n- A configured id that is registered and `available()` → that provider.\n- A configured id not registered → BROWSER_PROVIDER_CONFIGURED_MISSING.\n- A configured id registered but unavailable → BROWSER_PROVIDER_CONFIGURED_UNAVAILABLE.\n- No id configured, exactly one registered usable provider → that provider.\n- No id configured, multiple usable providers → BROWSER_PROVIDER_AMBIGUOUS.\n- No id configured, no usable provider → BROWSER_PROVIDER_UNAVAILABLE.',
+    methods: [
+      {
+        signature: 'register(provider: BrowserProvider): () => void',
+        description: 'Register one backend; the registration dies with the registering fiber.',
+        parameters: [{ name: 'provider', description: 'the backend to register under its own id.' }],
+        returns: 'the registration\'s disposer.',
+      },
+      {
+        signature: 'async run(sessionId: SessionId, command: string, args: readonly string[], signal?: AbortSignal): Promise<BrowserRunResult>',
+        description: 'Run one command in the named dsh session\'s browser through the selected provider.',
+        parameters: [{ name: 'sessionId', description: 'owning dsh session (keys the backend\'s per-session browser).' }, { name: 'command', description: 'backend command verb.' }, { name: 'args', description: 'positionals and `--flag=value` tokens, appended after the verb.' }, { name: 'signal', description: 'optional cooperative cancellation forwarded to the provider.' }],
+        returns: 'the provider\'s bounded reply.',
+      },
+      {
+        signature: 'async help(): Promise<string>',
+        description: 'The selected backend\'s command vocabulary reference.',
+        parameters: [],
+        returns: 'the backend\'s CLI help text.',
+      },
+      {
+        signature: 'async sessions(): Promise<readonly BrowserSessionInfo[]>',
+        description: 'List backend browser sessions with current page facts when known.',
+        parameters: [],
+        returns: 'the selected provider\'s session listing.',
+      },
+      {
+        signature: 'dashboardUrl(): string | undefined',
+        description: 'Monitoring dashboard URL of the selected provider, or undefined when the capability is absent or no dashboard is serving. Deliberately non-throwing: readers such as `host.describe` treat the dashboard as an optional surface.',
+        parameters: [],
+        returns: 'the dashboard URL when present.',
+      },
+      {
+        signature: 'async close(sessionId: SessionId): Promise<void>',
+        description: 'Close the named dsh session\'s browser when it is open.',
+        parameters: [{ name: 'sessionId', description: 'owning dsh session.' }],
+      },
+      {
+        signature: 'async closeAll(): Promise<void>',
+        description: 'Close every browser the selected backend owns (host shutdown).',
+        parameters: [],
+      },
+    ],
+  },
+  {
     key: 'clientModules',
     summary: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle route + index tap.',
     description: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle route + index tap. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
@@ -2738,6 +2785,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'Branded',
     declaration: 'export type Branded<B extends string> = string & {\n    readonly [BRAND]: B;\n};',
+  },
+  {
+    name: 'BrowserProvider',
+    declaration: 'export interface BrowserProvider {\n    readonly id: string;\n    available(): boolean;\n    help(): Promise<string>;\n    run(sessionId: SessionId, command: string, args: readonly string[], signal?: AbortSignal): Promise<BrowserRunResult>;\n    sessions(): Promise<readonly BrowserSessionInfo[]>;\n    dashboardUrl(): string | undefined;\n    close(sessionId: SessionId): Promise<void>;\n    closeAll(): Promise<void>;\n}',
+  },
+  {
+    name: 'BrowserRunResult',
+    declaration: 'export interface BrowserRunResult {\n    readonly output: string;\n}',
+  },
+  {
+    name: 'BrowserSessionInfo',
+    declaration: 'export interface BrowserSessionInfo {\n    readonly name: string;\n    readonly url?: string;\n    readonly title?: string;\n}',
   },
   {
     name: 'CancelOptions',

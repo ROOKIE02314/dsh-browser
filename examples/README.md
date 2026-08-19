@@ -27,3 +27,7 @@ An opt-in Web overlay for durable, Session-local reminders. It supports positive
 ## acp-agent
 
 An Agent Client Protocol automation server for programmatic clients, with session, permission, and cancellation support. See the [ACP example reference](acp-agent/README.md).
+
+## browser
+
+A Web overlay that enables the host browser capability for a trusted browser preset. See the [browser example reference](browser/README.md).

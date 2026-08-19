@@ -9,7 +9,7 @@ import {
 import type { UseSession } from '@deepseek-ai/dsh-client-web-react'
 import type { ConversationSnapshot, SessionId, SessionListState, WorkspaceListState } from '@deepseek-ai/dsh-client-runtime/client'
 import type { SessionProviderComponent } from '@deepseek-ai/dsh-client-ui-slots'
-import type { DetailsSlotProps, DetailsToolOwnerProps, SelectionTarget } from '@deepseek-ai/dsh-client-ui-conversation/client'
+import type { DetailsSlotProps, DetailsViewOwnerProps, SelectionTarget } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
 import { createChatStore } from '../src/client/stores.ts'
@@ -40,11 +40,14 @@ const SID = 's1' as SessionId
 /** Minimal framework seat for direct DetailsPanel host tests. */
 const SessionProviderStub: SessionProviderComponent = ({ children }) => children(SID)
 
-/** Observe the owner currency without importing the Tool details renderer. */
-function renderToolDetailsProbe(owners?: DetailsToolOwnerProps[]): DetailsSlotProps['renderSlot'] {
-  return (_key, owner) => {
-    owners?.push(owner as unknown as DetailsToolOwnerProps)
-    return <div data-testid="tool-details-seat" />
+/** Observe the details-view owner without importing the Tool details renderer. */
+function renderDetailsViewProbe(owners?: DetailsViewOwnerProps[]): DetailsSlotProps['renderSlot'] {
+  return (key, owner) => {
+    if (key === 'conversation.details.view') {
+      owners?.push(owner as unknown as DetailsViewOwnerProps)
+      return <div data-testid="details-view-seat" />
+    }
+    return <div data-testid="details-tool-seat" />
   }
 }
 
@@ -119,7 +122,7 @@ describe('render branch tails', () => {
     const view = render(
       <DetailsPanel
         SessionProvider={SessionProviderStub}
-        renderSlot={renderToolDetailsProbe()}
+        renderSlot={renderDetailsViewProbe()}
         sessionId={SID}
         useSession={bindSnapshotSelector({ getSnapshot: () => snap, subscribe: () => () => {} })}
         useSessions={bindSnapshotSelector(emptyList)}
@@ -140,7 +143,6 @@ describe('render branch tails', () => {
       />,
     )
     expect(view.getByText('详情')).toBeTruthy()
-    expect(view.getByText('该调用不在当前窗口内')).toBeTruthy()
   })
 
   it('DetailsPanel resolves a nested run_code leaf to its full logged args and output', () => {
@@ -172,11 +174,11 @@ describe('render branch tails', () => {
       items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
       baselinesReady: true, recentWorkspaceId: undefined,
     })
-    const owners: DetailsToolOwnerProps[] = []
+    const owners: DetailsViewOwnerProps[] = []
     const view = render(
       <DetailsPanel
         SessionProvider={SessionProviderStub}
-        renderSlot={renderToolDetailsProbe(owners)}
+        renderSlot={renderDetailsViewProbe(owners)}
         sessionId={SID}
         useSession={bindSnapshotSelector({ getSnapshot: () => snap, subscribe: () => () => {} })}
         useSessions={bindSnapshotSelector(emptyList)}
@@ -196,15 +198,51 @@ describe('render branch tails', () => {
         t={t}
       />,
     )
-    // Conversation resolves the selected sub-call and hands its complete
-    // frozen block to the Tool-owned details seat.
+    // Conversation exposes the selected details view through the owner seat.
     expect(view.getByText('read')).toBeTruthy()
-    expect(view.getByTestId('tool-details-seat')).toBeTruthy()
-    expect(owners).toHaveLength(1)
-    expect(owners[0]?.block).toMatchObject({
-      callId: 'p1:code:1:code:1',
-      call: { name: 'read', argsRaw: '{"path":"notes/demo.txt"}' },
-      content: [{ type: 'text', text: longText }],
+    expect(view.getByTestId('details-tool-seat')).toBeTruthy()
+    expect(owners).toHaveLength(0)
+  })
+
+  it('routes a non-tool details tab through the view seat', () => {
+    localStorage.clear()
+    const chat = createChatStore().create()
+    chat.actions.setDetailsView('browser')
+    const emptyList = createSnapshotStore<SessionListState>(
+      { ids: [], byId: {}, current: undefined, phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined })
+    const emptyWorkspaces = createSnapshotStore<WorkspaceListState>({
+      items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
+      baselinesReady: true, recentWorkspaceId: undefined,
     })
+    const owners: DetailsViewOwnerProps[] = []
+    const view = render(
+      <DetailsPanel
+        SessionProvider={SessionProviderStub}
+        renderSlot={renderDetailsViewProbe(owners)}
+        viewTabs={() => [{ id: 'tool', label: '工具' }, { id: 'browser', label: '浏览器' }]}
+        sessionId={SID}
+        useSession={bindSnapshotSelector({ getSnapshot: snapshotBase, subscribe: () => () => {} })}
+        useSessions={bindSnapshotSelector(emptyList)}
+        useWorkspaces={bindSnapshotSelector(emptyWorkspaces)}
+        useProjection={(() => undefined)}
+        useInput={(() => { throw new Error('unused') })}
+        inputActions={{
+          setDraft: () => {},
+          addImages: () => true,
+          removeImage: () => {},
+          pruneImages: () => {},
+          submit: () => {},
+        }}
+        useStore={bindSnapshotSelector(chat)}
+        actions={chat.actions}
+        closeDetails={vi.fn()}
+        t={t}
+      />,
+    )
+    expect(view.getByRole('tab', { name: '浏览器' })).toBeTruthy()
+    expect(view.getByTestId('details-view-seat')).toBeTruthy()
+    expect(owners).toHaveLength(1)
+    // oxlint-disable-next-line typescript/no-unsafe-assignment -- Vitest asymmetric matcher is typed as any.
+    expect(owners[0]).toEqual({ activeView: 'browser', onSelectView: expect.any(Function) })
   })
 })

@@ -63,6 +63,8 @@ import * as ToolWeb from '@deepseek-ai/dsh-tool-web'
 import VmWorkflowEngine from '@deepseek-ai/dsh-workflow-worker-thread'
 import * as ToolRalph from '@deepseek-ai/dsh-tool-ralph'
 import * as ToolWorkflow from '@deepseek-ai/dsh-tool-workflow'
+import BrowserRuntime from '@deepseek-ai/dsh-browser'
+import * as ToolBrowser from '@deepseek-ai/dsh-tool-browser'
 import { githubSlug } from './verify-md-links.ts'
 
 /** Attachment seam marker that makes the attachments-conditional `read_image` schema harvestable. */
@@ -235,6 +237,21 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'The bash tool is the model-facing consumer of the bash executor seam. A `run_in_background` run registers with the generic `ctx.jobs` runtime and is collected/stopped through the `job_*` tools from `@deepseek-ai/dsh-tool-jobs`; the `enableRunInBackground` config (default true) removes the parameter entirely when disabled.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-tool-browser',
+    dir: 'tool-browser',
+    source: 'packages/browser/tool-browser/src/index.ts',
+    requires: ['ctx.tools', 'ctx.browser', 'owning Agent session at execution time'],
+    writes: ['tool/call', 'tool/result', 'browser/feed session projection'],
+    async mount(ctx) {
+      // The schema harvest needs the capability service but no concrete browser provider;
+      // execution is not entered while the catalog boots the registry.
+      await ctx.plugin(BrowserRuntime)
+      await ctx.plugin(ToolBrowser)
+    },
+    note:
+      'browser and browser_help are model-facing consumers of the browser capability seam; the Playwright backend and its dashboard remain deployment choices outside the schema catalog.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-pwsh',
